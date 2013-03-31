@@ -10,7 +10,7 @@ I have seven years of history on my Last.fm account now, and I churn through mus
 
 The script uses Last.fm's API to grab your history. Then it finds the most-listened-to track from each week. It creates a playlist out of the results. Pretty simple!
 
-You can see an example (here)[http://www.rdio.com/people/Barrett/playlists/2071446/My_Number_Ones/]
+You can see an example [here](http://www.rdio.com/people/Barrett/playlists/2071446/My_Number_Ones/)
 
 ### To Use It
 
