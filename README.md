@@ -16,10 +16,10 @@ You can see an example [here](http://www.rdio.com/people/Barrett/playlists/20714
 
 1. Download the files.
 2. In the same folder, create a credentials.py file with the following information:
--- RDIO_CONSUMER_KEY
--- RDIO_CONSUMER_SECRET
--- RDIO_TOKEN
--- RDIO_TOKEN_SECRET
--- LAST_FM_KEY
--- LAST_FM_USER_NAME
+** RDIO_CONSUMER_KEY
+** RDIO_CONSUMER_SECRET
+** RDIO_TOKEN
+** RDIO_TOKEN_SECRET
+** LAST_FM_KEY
+** LAST_FM_USER_NAME
 3. Run the history_download.py script. That's it!
