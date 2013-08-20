@@ -5,6 +5,7 @@ import csv
 import re
 from rdio import Rdio
 from credentials import *
+import sys
 
 ROOT_URL = 'http://ws.audioscrobbler.com/2.0/'
 
@@ -95,7 +96,7 @@ def makePlaylist(charts):
 	keys_string = ', '.join(trackKeysDeDuped)
 	
 	print "Creating playlist...\n"
-	return rdio.call('createPlaylist', {'name': 'My Number Ones', 
+	return rdio.call('createPlaylist', {'name': sys.argv[1], 
 								 'description': 'My weekly number ones from Last.fm', 
 								 'tracks': keys_string})
 
