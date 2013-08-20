@@ -22,4 +22,5 @@ You can see an example [here](http://www.rdio.com/people/Barrett/playlists/20714
 ** RDIO_TOKEN_SECRET
 ** LAST_FM_KEY
 ** LAST_FM_USER_NAME
-3. Run the history_download.py script. That's it!
+3. Run the history_download.py script from the command line with an additional argument that names the playlist.
+** E.g. "python history_download.py 'This is My Playlist Name'"
