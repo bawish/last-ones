@@ -6,6 +6,7 @@ import re
 from rdio import Rdio
 from credentials import *
 import sys
+import time
 
 ROOT_URL = 'http://ws.audioscrobbler.com/2.0/'
 
@@ -17,9 +18,12 @@ def getDates():
 			 'api_key': LAST_FM_KEY, 'format': 'JSON'}
 	URL = '?'.join([ROOT_URL, urllib.urlencode(query)])
 	data = json.load(urllib2.urlopen(URL))['weeklychartlist']['chart']
+	
+	count = 0
 
 	for record in data:
-		date_range = {'from':record['from'], 'to':record['to']}
+		date_range = {'from': record['from'], 'to': record['to'], 'index': count}
+		count += 1
 		dates.append(date_range)
 		
 	return dates
@@ -43,7 +47,6 @@ def getTracks(dateRanges):
 					track_record = {'name': entry['name'].encode('utf8'), #csv requires utf-8
 									'artist': entry['artist']['#text'].encode('utf8'),
 									'rank': entry['@attr']['rank'],
-									'url': entry['url'],
 									'playcount': entry['playcount']} 
 					tracks.append(track_record)
 					print 'Adding %s by %s' % (entry['name'], entry['artist']['#text'])
@@ -52,7 +55,7 @@ def getTracks(dateRanges):
 		else:
 			print 'No tracks'
 	
-		charts.append({'week': {'from': date['from'], 'to': date['to']},
+		charts.append({'week': {'from': date['from'], 'to': date['to'], 'index': date['count']},
 					   'tracks': tracks})
 	
 	return charts
@@ -104,14 +107,16 @@ if __name__ == '__main__':
 	dateRanges = getDates()
 	charts = getTracks(dateRanges)
 	
-	#write to csv in case you want to do anything else with the history; not strictly necessary
+	#write to csv
 	f = open('history.csv', 'w')
 	writer = csv.writer(f)
+	writer.writerrow(['week_from', 'week_to', 'week_index', 'track_name', 'track_artist',
+					  'track_rank', 'track_playcount'])
 	for chart in charts:
 		for track in chart['tracks']:
-			writer.writerow([chart['week']['from'], chart['week']['to'],
+			writer.writerow([chart['week']['from'], chart['week']['to'], chart['week']['index'],
 							 track['name'], track['artist'], track['rank'],
-							 track['playcount'], track['url']])
+							 track['playcount']])
 	f.close()
 	
 	print "\nFile created, now creating playlist"
