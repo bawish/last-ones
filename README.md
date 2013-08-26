@@ -19,14 +19,14 @@ You can see an example [here](http://www.rdio.com/people/Barrett/playlists/20714
 1. Download the files.
 2. In the same folder, create a credentials.py file with the following information:
 
-** RDIO_CONSUMER_KEY
-** RDIO_CONSUMER_SECRET
-** RDIO_TOKEN
-** RDIO_TOKEN_SECRET
-** LAST_ONES_PLAYLIST_KEY (if updating an existing playlist)
-** LAST_FM_KEY
-** LAST_FM_USER_NAME
+* RDIO_CONSUMER_KEY
+* RDIO_CONSUMER_SECRET
+* RDIO_TOKEN
+* RDIO_TOKEN_SECRET
+* LAST_ONES_PLAYLIST_KEY (if updating an existing playlist)
+* LAST_FM_KEY
+* LAST_FM_USER_NAME
 
 3. Run the history_download.py script from the command line with an additional argument that names the playlist.
 
-** E.g. `python history_download.py 'This is My Playlist Name'`
+* E.g. `python history_download.py 'This is My Playlist Name'`
