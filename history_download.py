@@ -119,11 +119,25 @@ def make_playlist(charts):
 								 'description': 'My weekly number ones from Last.fm', 
 								 'tracks': keys_string})
 
-def update_history(csv, playlist_key = LAST_ONES_PLAYLIST_KEY):
-	f = open(csv, 'rb')
+# get all the track keys for a given playlist
+# returns a list of track keys
+def get_playlist_tracks(playlist_key):
+	track_keys = (rdio.call('get', {'keys': playlist_key, 
+									'extras': 'trackKeys'})
+				  ['result'][playlist_key]['trackKeys'])
+	return track_keys
+
+def update_history(history_file = 'history.csv', 
+				   playlist_key = LAST_ONES_PLAYLIST_KEY):
 	
-	#access final week_count
-	last_index = f.readlines()[-1].split(',')[2]
+	#hacky way access index of last row of csv
+	with open(history_file, 'rb') as f:
+		index_holder = []
+		reader = csv.reader(f)
+		for row in reader:
+			index_holder.append(row[2])
+		last_index = int(index_holder[-1])
+		print "Index is %s" % last_index #for de-bugging
 	
 	date_ranges = get_dates()
 	
@@ -131,8 +145,9 @@ def update_history(csv, playlist_key = LAST_ONES_PLAYLIST_KEY):
 	new_weeks = date_ranges[(last_index+1):] 
 	new_charts = get_tracks(new_weeks)
 		
-	track_keys = [] #for updating playlist
-	track_list = load_history(csv) #for re-writing history
+	existing_track_keys = get_playlist_tracks(playlist_key) 
+	new_track_keys = [] #for updating playlist
+	track_list = load_history(history_file) #for re-writing history
 	
 	for chart in new_charts:
 		for track in chart['tracks']:
@@ -152,14 +167,18 @@ def update_history(csv, playlist_key = LAST_ONES_PLAYLIST_KEY):
 				print "Searching for %s" % track['name']
 				track_key = find_track(track)
 				if track_key != None:
-					print "Found %s" % track['name']
-					track_keys.append(track_key)
+					if not track_key in existing_track_keys:
+						print "Found new track %s" % track['name']
+						new_track_keys.append(track_key)
 				
+	print "\nRe-writing history CSV...\n"
+	write_history(track_list)
+	
 	print "\nSorting track keys...\n"
 	track_keys_de_duped = []
 	
 	#reverses list so that newest tracks appear at top of playlist
-	for i in reversed(track_keys):
+	for i in reversed(new_track_keys):
 		if i not in track_keys_de_duped:
 			track_keys_de_duped.append(i)
 			
@@ -169,15 +188,15 @@ def update_history(csv, playlist_key = LAST_ONES_PLAYLIST_KEY):
 	rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': keys_string})
 
 # returns list of dicts formed from rows of history CSV
-def load_history(csv):
-	f = open(csv, 'rb')
+def load_history(history_file):
+	f = open(history_file, 'rb')
 	reader = csv.reader(f)
 	
 	track_list = []
 	
 	for row in reader:
 		track_entry = {'from': row[0], 'to': row[1], 'index': row[2],
-					   'title': row[3], 'artist': row[4], 'rank': row[5],
+					   'name': row[3], 'artist': row[4], 'rank': row[5],
 					   'playcount': row[6]}
 		track_list.append(track_entry)
 	
