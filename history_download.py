@@ -10,6 +10,10 @@ import time
 
 ROOT_URL = 'http://ws.audioscrobbler.com/2.0/'
 
+#initialize rdio object
+rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET), 
+		    (RDIO_TOKEN, RDIO_TOKEN_SECRET))
+
 #query Last.fm API to get date ranges available
 #returns a list of dictionaries with "to" and "from" keys
 def get_dates():
@@ -76,18 +80,30 @@ def find_track(track):
         pass
 	
 def make_playlist(charts):
-	track_keys = []
+	track_keys = [] # for creating the playlist
+	track_list = [] # for writing to csv
 	
 	for chart in charts:
 		for track in chart['tracks']:
+			current_track = {'from': chart['week']['from'], 
+							 'to': chart['week']['to'], 
+							 'index': chart['week']['index'], 
+							 'name': track['name'], 
+							 'artist': track['artist'], 
+							 'rank': track['rank'], 
+							 'playcount': track['playcount']}
+			track_list.append(current_track)
 			if track['rank'] == '1':
 				print "Searching for %s" % track['name']
 				track_key = find_track(track)
 				if track_key != None:
 					print "Found %s" % track['name']
 					track_keys.append(track_key)
+	
+	print "\nWriting history to CSV...\n"
+	write_history(track_list)
 				
-	print "\nSorting track keys...\n"
+	print "\nSorting track keys to create playlist...\n"
 	track_keys_de_duped = []
 	
 	#reverses list so that newest tracks appear at top of playlist
@@ -99,24 +115,39 @@ def make_playlist(charts):
 	keys_string = ', '.join(track_keys_de_duped)
 	
 	print "Creating playlist...\n"
-	return rdio.call('createPlaylist', {'name': sys.argv[1], 
+	return rdio.call('createPlaylist', {'name': 'Last Ones', 
 								 'description': 'My weekly number ones from Last.fm', 
 								 'tracks': keys_string})
 
-def update_history():
-	f = open('history.csv', 'rb')
-	last_index = f.readlines()[-1].split(',')[2] #should access final week_count, may need to update number
+def update_history(csv, playlist_key = LAST_ONES_PLAYLIST_KEY):
+	f = open(csv, 'rb')
+	
+	#access final week_count
+	last_index = f.readlines()[-1].split(',')[2]
+	
 	date_ranges = get_dates()
-	new_weeks = date_ranges[(last_index+1):] #new_weeks includes ranges not yet searched
-	charts = get_tracks(date_ranges)
 	
-	#initialize rdio object
-	rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET), (RDIO_TOKEN, RDIO_TOKEN_SECRET))
+	#new_weeks includes ranges not yet searched
+	new_weeks = date_ranges[(last_index+1):] 
+	new_charts = get_tracks(new_weeks)
+		
+	track_keys = [] #for updating playlist
+	track_list = load_history(csv) #for re-writing history
 	
-	track_keys = []
-	
-	for chart in charts:
+	for chart in new_charts:
 		for track in chart['tracks']:
+			
+			#update csv list
+			current_track = {'from': chart['week']['from'], 
+							 'to': chart['week']['to'], 
+							 'index': chart['week']['index'], 
+							 'name': track['name'], 
+							 'artist': track['artist'], 
+							 'rank': track['rank'], 
+							 'playcount': track['playcount']}
+			track_list.append(current_track) # add to list for csv
+			
+			#add to list for playlist updating
 			if track['rank'] == '1':
 				print "Searching for %s" % track['name']
 				track_key = find_track(track)
@@ -135,28 +166,31 @@ def update_history():
 	#convert track list into single, comma-separated string (which is required for some silly reason)
 	keys_string = ', '.join(track_keys_de_duped)
 	
-	rdio.call('addToPlaylist', {'playlist': LAST_ONES_PLAYLIST_KEY, 'tracks': keys_string})
-    	
+	rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': keys_string})
 
-if __name__ == '__main__':
-	date_ranges = get_dates()
-	charts = get_tracks(date_ranges)
+# returns list of dicts formed from rows of history CSV
+def load_history(csv):
+	f = open(csv, 'rb')
+	reader = csv.reader(f)
 	
-	#write to csv
-	f = open('history.csv', 'w')
-	writer = csv.writer(f)
-	writer.writerrow(['week_from', 'week_to', 'week_index', 'track_name', 'track_artist',
-					  'track_rank', 'track_playcount'])
-	for chart in charts:
-		for track in chart['tracks']:
-			writer.writerow([chart['week']['from'], chart['week']['to'], chart['week']['index'],
-							 track['name'], track['artist'], track['rank'],
-							 track['playcount']])
+	track_list = []
+	
+	for row in reader:
+		track_entry = {'from': row[0], 'to': row[1], 'index': row[2],
+					   'title': row[3], 'artist': row[4], 'rank': row[5],
+					   'playcount': row[6]}
+		track_list.append(track_entry)
+	
 	f.close()
 	
-	print "\nFile created, now creating playlist"
+	return track_list
+
+def write_history(track_list):
+	f = open('history.csv', 'w')
+	writer = csv.writer(f)
 	
-	print "\nOpening Rdio connection...\n"
-	rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET), (RDIO_TOKEN, RDIO_TOKEN_SECRET))
-	
-	print make_playlist(charts)
+	for track in track_list:
+		writer.writerow([track['from'], track['to'], track['index'],
+						track['name'], track['artist'], track['rank'],
+						track['playcount']])
+	f.close()
