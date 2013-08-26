@@ -10,6 +10,23 @@ import time
 
 ROOT_URL = 'http://ws.audioscrobbler.com/2.0/'
 
+#puts last track of a playlist at start
+def make_last_track_first(playlist_key):
+	tracks_on_playlist = rdio.call('get', {'keys': playlist_key, 'extras' : 'tracks'})
+	tracks_on_playlist = tracks_on_playlist['result'][playlist_key]['tracks']
+	
+	track_keys = []
+	
+	for track in tracks_on_playlist:
+		track_keys.append(track['key'])
+		
+	track_keys.insert(0, track_keys[-1])
+	track_keys.pop()
+	
+	track_keys_string = ', '.join(track_keys)
+	
+	rdio.call('setPlaylistOrder', {'playlist': playlist_key, 'tracks' : track_keys_string})
+
 #query Last.fm API to get date ranges available
 #returns a list of dictionaries with "to" and "from" keys
 def get_dates():
