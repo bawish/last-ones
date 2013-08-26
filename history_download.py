@@ -12,7 +12,7 @@ ROOT_URL = 'http://ws.audioscrobbler.com/2.0/'
 
 #query Last.fm API to get date ranges available
 #returns a list of dictionaries with "to" and "from" keys
-def getDates():
+def get_dates():
 	dates = []
 	query = {'method': 'user.getweeklychartlist', 'user': LAST_FM_USER_NAME,
 			 'api_key': LAST_FM_KEY, 'format': 'JSON'}
@@ -29,10 +29,10 @@ def getDates():
 	return dates
 
 #accepts the array of dicts with "to" and "from" values returned by getDates
-def getTracks(dateRanges):
+def get_tracks(date_ranges):
 	charts = []	
 	
-	for date in dateRanges:
+	for date in date_ranges:
 		tracks = []
 		query = {'method': 'user.getweeklytrackchart', 'user': LAST_FM_USER_NAME,
 				 'api_key': LAST_FM_KEY, 'format': 'JSON', 'from': date['from'],
@@ -55,7 +55,7 @@ def getTracks(dateRanges):
 		else:
 			print 'No tracks'
 	
-		charts.append({'week': {'from': date['from'], 'to': date['to'], 'index': date['count']},
+		charts.append({'week': {'from': date['from'], 'to': date['to'], 'index': date['index']},
 					   'tracks': tracks})
 	
 	return charts
@@ -75,28 +75,28 @@ def find_track(track):
     except UnicodeDecodeError, UnicodeEncodeError:
         pass
 	
-def makePlaylist(charts):
-	trackKeys = []
+def make_playlist(charts):
+	track_keys = []
 	
 	for chart in charts:
 		for track in chart['tracks']:
 			if track['rank'] == '1':
 				print "Searching for %s" % track['name']
-				trackKey = find_track(track)
-				if trackKey != None:
+				track_key = find_track(track)
+				if track_key != None:
 					print "Found %s" % track['name']
-					trackKeys.append(trackKey)
+					track_keys.append(track_key)
 				
 	print "\nSorting track keys...\n"
-	trackKeysDeDuped = []
+	track_keys_de_duped = []
 	
 	#reverses list so that newest tracks appear at top of playlist
-	for i in reversed(trackKeys):
-		if i not in trackKeysDeDuped:
-			trackKeysDeDuped.append(i)
+	for i in reversed(track_keys):
+		if i not in track_keys_de_duped:
+			track_keys_de_duped.append(i)
 			
 	#convert track list into single, comma-separated string (which is required for some silly reason)
-	keys_string = ', '.join(trackKeysDeDuped)
+	keys_string = ', '.join(track_keys_de_duped)
 	
 	print "Creating playlist...\n"
 	return rdio.call('createPlaylist', {'name': sys.argv[1], 
@@ -104,18 +104,20 @@ def makePlaylist(charts):
 								 'tracks': keys_string})
 
 def update_history():
-	with open('history.csv', 'rb') as history:
-		last_index = history.readlines()[-1].split(',')[2] #should access week_count, may need to update number
-
-	#now use getDates method for full list of dates
-	#limit the dict of dates to just those after index integer
-	#get tracks for those ranges
+	f = open('history.csv', 'rb')
+	last_index = f.readlines()[-1].split(',')[2] #should access final week_count, may need to update number
+	date_ranges = get_dates()
+	new_weeks = date_ranges[(last_index+1):] #new_weeks includes ranges not yet searched
+	charts = get_tracks(date_ranges)
+	
 	#initialize rdio object
+	rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET), (RDIO_TOKEN, RDIO_TOKEN_SECRET))
+	
 	#add new number ones to playlist (will need to add playlist key to credentials)
 
 if __name__ == '__main__':
-	dateRanges = getDates()
-	charts = getTracks(dateRanges)
+	date_ranges = get_dates()
+	charts = get_tracks(date_ranges)
 	
 	#write to csv
 	f = open('history.csv', 'w')
@@ -134,4 +136,4 @@ if __name__ == '__main__':
 	print "\nOpening Rdio connection...\n"
 	rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET), (RDIO_TOKEN, RDIO_TOKEN_SECRET))
 	
-	print makePlaylist(charts)
+	print make_playlist(charts)
