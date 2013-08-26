@@ -10,23 +10,6 @@ import time
 
 ROOT_URL = 'http://ws.audioscrobbler.com/2.0/'
 
-#puts last track of a playlist at start
-def make_last_track_first(playlist_key):
-	tracks_on_playlist = rdio.call('get', {'keys': playlist_key, 'extras' : 'tracks'})
-	tracks_on_playlist = tracks_on_playlist['result'][playlist_key]['tracks']
-	
-	track_keys = []
-	
-	for track in tracks_on_playlist:
-		track_keys.append(track['key'])
-		
-	track_keys.insert(0, track_keys[-1])
-	track_keys.pop()
-	
-	track_keys_string = ', '.join(track_keys)
-	
-	rdio.call('setPlaylistOrder', {'playlist': playlist_key, 'tracks' : track_keys_string})
-
 #query Last.fm API to get date ranges available
 #returns a list of dictionaries with "to" and "from" keys
 def get_dates():
@@ -130,7 +113,30 @@ def update_history():
 	#initialize rdio object
 	rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET), (RDIO_TOKEN, RDIO_TOKEN_SECRET))
 	
-	#add new number ones to playlist (will need to add playlist key to credentials)
+	track_keys = []
+	
+	for chart in charts:
+		for track in chart['tracks']:
+			if track['rank'] == '1':
+				print "Searching for %s" % track['name']
+				track_key = find_track(track)
+				if track_key != None:
+					print "Found %s" % track['name']
+					track_keys.append(track_key)
+				
+	print "\nSorting track keys...\n"
+	track_keys_de_duped = []
+	
+	#reverses list so that newest tracks appear at top of playlist
+	for i in reversed(track_keys):
+		if i not in track_keys_de_duped:
+			track_keys_de_duped.append(i)
+			
+	#convert track list into single, comma-separated string (which is required for some silly reason)
+	keys_string = ', '.join(track_keys_de_duped)
+	
+	rdio.call('addToPlaylist', {'playlist': LAST_ONES_PLAYLIST_KEY, 'tracks': keys_string})
+    	
 
 if __name__ == '__main__':
 	date_ranges = get_dates()
