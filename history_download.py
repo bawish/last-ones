@@ -103,6 +103,16 @@ def makePlaylist(charts):
 								 'description': 'My weekly number ones from Last.fm', 
 								 'tracks': keys_string})
 
+def update_history():
+	with open('history.csv', 'rb') as history:
+		last_index = history.readlines()[-1].split(',')[2] #should access week_count, may need to update number
+
+	#now use getDates method for full list of dates
+	#limit the dict of dates to just those after index integer
+	#get tracks for those ranges
+	#initialize rdio object
+	#add new number ones to playlist (will need to add playlist key to credentials)
+
 if __name__ == '__main__':
 	dateRanges = getDates()
 	charts = getTracks(dateRanges)
