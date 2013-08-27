@@ -28,4 +28,4 @@ You can see an example [here](http://www.rdio.com/people/Barrett/playlists/20714
 * LAST_FM_USER_NAME
 
 3. Run the `make_playlist()` function once.
-4. Create a cron job to run `update_playlist()` on occasion.
+4. Create a cron job to run the updater.py file on occasion (which in turn simply runs the `update_playlist()` function).
