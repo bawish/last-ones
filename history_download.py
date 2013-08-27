@@ -191,18 +191,9 @@ def update_playlist(history_file = 'history.csv',
 	print "\nRe-writing history CSV...\n"
 	write_history(track_list)
 	
-	print "\nSorting track keys...\n"
-	track_keys_de_duped = []
-	
-	#reverses list so that newest tracks appear at top of playlist
-	for i in reversed(new_track_keys):
-		if i not in track_keys_de_duped:
-			track_keys_de_duped.append(i)
-			
-	#convert track list into single, comma-separated string (which is required for some silly reason)
-	keys_string = ', '.join(track_keys_de_duped)
-	
-	rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': keys_string})
+	for key in new_track_keys:
+		rdio.call('addToPlaylist', {'playlist': playlist_key, 'tracks': key})
+		make_last_track_first(playlist_key)
 
 # returns list of dicts formed from rows of history CSV
 def load_history(history_file):
