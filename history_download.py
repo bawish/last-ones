@@ -14,6 +14,23 @@ ROOT_URL = 'http://ws.audioscrobbler.com/2.0/'
 rdio = Rdio((RDIO_CONSUMER_KEY, RDIO_CONSUMER_SECRET), 
 		    (RDIO_TOKEN, RDIO_TOKEN_SECRET))
 
+#puts last track of a playlist at start
+def make_last_track_first(playlist_key = LAST_ONES_PLAYLIST_KEY):
+	tracks_on_playlist = rdio.call('get', {'keys': playlist_key, 'extras': 'tracks'})
+	tracks_on_playlist = tracks_on_playlist['result'][playlist_key]['tracks']
+
+	track_keys = []
+
+	for track in tracks_on_playlist:
+		track_keys.append(track['key'])
+
+	track_keys.insert(0, track_keys[-1])
+	track_keys.pop()
+
+	track_keys_string = ', '.join(track_keys)
+
+	rdio.call('setPlaylistOrder', {'playlist': playlist_key, 'tracks': track_keys_string})
+
 #query Last.fm API to get date ranges available
 #returns a list of dictionaries with "to" and "from" keys
 def get_dates():
@@ -127,7 +144,7 @@ def get_playlist_tracks(playlist_key):
 				  ['result'][playlist_key]['trackKeys'])
 	return track_keys
 
-def update_history(history_file = 'history.csv', 
+def update_playlist(history_file = 'history.csv', 
 				   playlist_key = LAST_ONES_PLAYLIST_KEY):
 	
 	#hacky way access index of last row of csv
@@ -137,7 +154,7 @@ def update_history(history_file = 'history.csv',
 		for row in reader:
 			index_holder.append(row[2])
 		last_index = int(index_holder[-1])
-		print "Index is %s" % last_index #for de-bugging
+		print "\nIndex is %s\n" % last_index #for de-bugging
 	
 	date_ranges = get_dates()
 	
