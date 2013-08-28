@@ -96,7 +96,10 @@ def find_track(track):
     except UnicodeDecodeError, UnicodeEncodeError:
         pass
 	
-def make_playlist(charts):
+def make_playlist():
+	date_ranges = get_dates()
+	charts = get_tracks(date_ranges)
+	
 	track_keys = [] # for creating the playlist
 	track_list = [] # for writing to csv
 	
