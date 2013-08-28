@@ -12,13 +12,12 @@ The main function, `make_playlist()`, uses Last.fm's API to grab your history. T
 
 The `update_playlist()` function updates your Last Ones playlist starting from the most recent track stored in history.csv.
 
-You can see an example [here](http://www.rdio.com/people/Barrett/playlists/2071446/My_Number_Ones/)
+You can see an example [here](http://www.rdio.com/people/Barrett/playlists/5782567/Last_Ones/)
 
 ### To Use It
 
-1. Download the files.
+1. Download the files, which include the [rdio-simple library](https://github.com/rdio/rdio-simple/tree/master/python).
 2. In the same directory, create a credentials.py file with the following information:
-
 * RDIO_CONSUMER_KEY
 * RDIO_CONSUMER_SECRET
 * RDIO_TOKEN
@@ -26,6 +25,5 @@ You can see an example [here](http://www.rdio.com/people/Barrett/playlists/20714
 * LAST_ONES_PLAYLIST_KEY (add this once you've run `make_playlist()` once)
 * LAST_FM_KEY
 * LAST_FM_USER_NAME
-
-3. Run the `make_playlist()` function once.
-4. Create a cron job to run the updater.py file on occasion (which in turn simply runs the `update_playlist()` function).
+3. Run the `make_playlist()` function once to create the playlist using your entire Last.fm history, from start to present.
+4. Create a cron job to run the updater.py file on occasion. The updater file runs the `update_playlist()` function, which adds tracks starting from the most recent week stored in history.csv.
