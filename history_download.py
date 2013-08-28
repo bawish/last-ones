@@ -60,6 +60,8 @@ def get_tracks(date_ranges):
 				 'to': date['to']}
 		url = '?'.join([ROOT_URL, urllib.urlencode(query)])
 		response = json.load(urllib2.urlopen(url))
+		
+		time.sleep(1.0)
 
 		if 'track' in response['weeklytrackchart']:
 			try:
@@ -93,7 +95,8 @@ def find_track(track):
                 if re.search(track['name'], result['name'], flags=re.IGNORECASE) != None:
                     if result['canStream']:
                         return result['key']
-    except UnicodeDecodeError, UnicodeEncodeError:
+		time.sleep(1.0)
+    except (UnicodeDecodeError, UnicodeEncodeError, urllib2.HTTPError):
         pass
 	
 def make_playlist():
