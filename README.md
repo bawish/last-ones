@@ -18,12 +18,14 @@ You can see an example [here](http://www.rdio.com/people/Barrett/playlists/57825
 
 1. Download the files, which include the [rdio-simple library](https://github.com/rdio/rdio-simple/tree/master/python).
 2. In the same directory, create a credentials.py file with the following information:
-* RDIO_CONSUMER_KEY
-* RDIO_CONSUMER_SECRET
-* RDIO_TOKEN
-* RDIO_TOKEN_SECRET
-* LAST_ONES_PLAYLIST_KEY (add this once you've run `make_playlist()` once)
-* LAST_FM_KEY
-* LAST_FM_USER_NAME
+
+  * RDIO_CONSUMER_KEY
+  * RDIO_CONSUMER_SECRET
+  * RDIO_TOKEN
+  * RDIO_TOKEN_SECRET
+  * LAST_ONES_PLAYLIST_KEY (add this once you've run `make_playlist()` once)
+  * LAST_FM_KEY
+  * LAST_FM_USER_NAME
+
 3. Run the `make_playlist()` function once to create the playlist using your entire Last.fm history, from start to present.
 4. Create a cron job to run the updater.py file on occasion. The updater file runs the `update_playlist()` function, which adds tracks starting from the most recent week stored in history.csv.
