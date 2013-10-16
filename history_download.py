@@ -49,37 +49,57 @@ def get_dates():
 		
 	return dates
 
+# accepts a DICTIONARY with 'to' and 'from' keys
+def get_weekly_chart_data(date_range):	
+	query = {'method': 'user.getweeklytrackchart', 'user': LAST_FM_USER_NAME,
+			 'api_key': LAST_FM_KEY, 'format': 'JSON', 'from': date_range['from'],
+			 'to': date_range['to']}
+	url = '?'.join([ROOT_URL, urllib.urlencode(query)])
+	response = json.load(urllib2.urlopen(url))
+	return response
+
 #accepts the array of dicts with "to" and "from" values returned by getDates
 def get_tracks(date_ranges):
 	charts = []	
 	
 	for date in date_ranges:
-		tracks = []
-		query = {'method': 'user.getweeklytrackchart', 'user': LAST_FM_USER_NAME,
-				 'api_key': LAST_FM_KEY, 'format': 'JSON', 'from': date['from'],
-				 'to': date['to']}
-		url = '?'.join([ROOT_URL, urllib.urlencode(query)])
-		response = json.load(urllib2.urlopen(url))
+		track_list = []
 		
+		api_call = get_weekly_chart_data(date)['weeklytrackchart']
+
 		time.sleep(1.0)
 
-		if 'track' in response['weeklytrackchart']:
+		if 'track' in api_call:
+			
 			try:
-				for entry in response['weeklytrackchart']['track']:
-					#playcount and url are extraneous
-					track_record = {'name': entry['name'].encode('utf8'), #csv requires utf-8
-									'artist': entry['artist']['#text'].encode('utf8'),
-									'rank': entry['@attr']['rank'],
-									'playcount': entry['playcount']} 
-					tracks.append(track_record)
-					print 'Adding %s by %s' % (entry['name'], entry['artist']['#text'])
+				tracks = api_call['track']
+				
+				play_count = '' # re-set this to the play-count of each week's #1
+				
+				for track in tracks:					
+					if track['@attr']['rank'] == '1':
+						play_count = track['playcount']
+						track_record = {'name': track['name'].encode('utf8'), #csv requires utf-8
+										'artist': track['artist']['#text'].encode('utf8'),
+										'rank': track['@attr']['rank'],
+										'playcount': track['playcount']} 
+						track_list.append(track_record)
+						print 'Adding %s by %s' % (track['name'], track['artist']['#text'])
+					elif track['playcount'] == play_count:
+						# should be identical to above, i'm too lazy to make it a new function
+						track_record = {'name': track['name'].encode('utf8'), #csv requires utf-8
+										'artist': track['artist']['#text'].encode('utf8'),
+										'rank': track['@attr']['rank'],
+										'playcount': track['playcount']} 
+						track_list.append(track_record)
+						print 'Adding %s by %s' % (track['name'], track['artist']['#text'])
 			except TypeError, e:
 				pass
 		else:
 			print 'No tracks'
 	
 		charts.append({'week': {'from': date['from'], 'to': date['to'], 'index': date['index']},
-					   'tracks': tracks})
+					   'tracks': track_list})
 	
 	return charts
 	
