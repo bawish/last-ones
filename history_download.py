@@ -103,7 +103,8 @@ def get_tracks(date_ranges):
 	
 	return charts
 	
-#takes in a track dictionary and looks for it in rdio, returns track key if found
+# takes in a track dictionary and looks for it in rdio, returns track key if found
+# update this to include smarter seatgeek-style thresholds?
 def find_track(track):
     query = track['artist']+' '+track['name']
 
@@ -135,13 +136,13 @@ def make_playlist():
 							 'artist': track['artist'], 
 							 'rank': track['rank'], 
 							 'playcount': track['playcount']}
-			track_list.append(current_track)
-			if track['rank'] == '1':
-				print "Searching for %s" % track['name']
-				track_key = find_track(track)
-				if track_key != None:
-					print "Found %s" % track['name']
-					track_keys.append(track_key)
+			track_list.append(current_track) # for writing clean to csv
+			
+			print "Searching for %s" % track['name']
+			track_key = find_track(track)
+			if track_key != None:
+				print "Found %s" % track['name']
+				track_keys.append(track_key)
 	
 	print "\nWriting history to CSV...\n"
 	write_history(track_list)
@@ -185,7 +186,8 @@ def update_playlist(history_file = 'history.csv',
 	date_ranges = get_dates()
 	
 	#new_weeks includes ranges not yet searched
-	new_weeks = date_ranges[(last_index+1):] 
+	new_weeks = date_ranges[(last_index+1):]
+	print "New weeks are:\n%s" % new_weeks # for de-bugging
 	new_charts = get_tracks(new_weeks)
 		
 	existing_track_keys = get_playlist_tracks(playlist_key) 
@@ -206,13 +208,12 @@ def update_playlist(history_file = 'history.csv',
 			track_list.append(current_track) # add to list for csv
 			
 			#add to list for playlist updating
-			if track['rank'] == '1':
-				print "Searching for %s" % track['name']
-				track_key = find_track(track)
-				if track_key != None:
-					if not track_key in existing_track_keys:
-						print "Found new track %s" % track['name']
-						new_track_keys.append(track_key)
+			print "Searching for %s" % track['name']
+			track_key = find_track(track)
+			if track_key != None:
+				if not track_key in existing_track_keys:
+					print "Found new track %s" % track['name']
+					new_track_keys.append(track_key)
 				
 	print "\nRe-writing history CSV...\n"
 	write_history(track_list)
@@ -222,7 +223,7 @@ def update_playlist(history_file = 'history.csv',
 		make_last_track_first(playlist_key)
 
 # returns list of dicts formed from rows of history CSV
-def load_history(history_file):
+def load_history(history_file = 'history.csv'):
 	f = open(history_file, 'rb')
 	reader = csv.reader(f)
 	
