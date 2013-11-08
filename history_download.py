@@ -176,6 +176,7 @@ def update_playlist(history_file = 'history.csv',
 	
 	#hacky way access index of last row of csv
 	with open(history_file, 'rb') as f:
+		print "Opening history.csv" # FOR DEBUG
 		index_holder = []
 		reader = csv.reader(f)
 		for row in reader:
